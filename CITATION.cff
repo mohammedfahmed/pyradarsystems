@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use PyRadarSystems in academic work, please cite the software."
+title: "PyRadarSystems: A Validation-First Python Framework for Radar Systems Research"
+type: software
+authors:
+  - family-names: "Ahmed"
+    given-names: "Mohammed F. A."
+version: 0.1.0
+date-released: 2026-07-30
+license: BSD-3-Clause
+keywords:
+  - radar simulation
+  - radar signal processing
+  - tracking
+  - hardware integration
+  - radar
+  - FMCW
+  - TDM-MIMO
+  - phased array
+  - automotive radar
+  - signal processing

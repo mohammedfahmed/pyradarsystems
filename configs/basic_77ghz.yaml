@@ -1,0 +1,38 @@
+waveform:
+  carrier_frequency_hz: 77000000000.0
+  bandwidth_hz: 1000000000.0
+  chirp_duration_s: 0.00005
+  idle_time_s: 0.00001
+  sampling_rate_hz: 10000000.0
+  samples_per_chirp: 500
+  chirps_per_tx: 64
+
+array:
+  num_tx: 3
+  num_rx: 4
+  tx_spacing_lambda: 2.0
+  rx_spacing_lambda: 0.5
+
+system:
+  tx_power_w: 0.01
+  tx_gain_linear: 10.0
+  rx_gain_linear: 10.0
+  receiver_noise_figure_db: 10.0
+  receiver_temperature_k: 290.0
+  system_loss_linear: 1.0
+
+targets:
+  - range_m: 25.0
+    radial_velocity_mps: -3.0
+    azimuth_deg: 12.0
+    elevation_deg: 0.0
+    rcs_sqm: 10.0
+
+impairments:
+  tx_gain_std_db: 0.0
+  rx_gain_std_db: 0.0
+  tx_phase_std_deg: 0.0
+  rx_phase_std_deg: 0.0
+  phase_noise_std_rad_per_sample: 0.0
+  adc_bits: null
+  adc_full_scale: null

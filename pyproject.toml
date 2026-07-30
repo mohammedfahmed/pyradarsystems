@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyradarsystems"
+version = "0.1.0"
+description = "Validation-first Python framework for radar simulation, phased arrays, processing, tracking, and hardware integration"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "BSD-3-Clause"}
+authors = [
+  {name = "Mohammed F. A. Ahmed"}
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+]
+keywords = ["radar", "phased-array", "FMCW", "MIMO", "signal-processing", "tracking", "radar-simulation"]
+
+dependencies = [
+  "numpy>=1.24",
+  "scipy>=1.10",
+  "xarray>=2023.1",
+  "matplotlib>=3.7",
+  "PyYAML>=6.0"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "pytest-cov>=4.1", "ruff>=0.4"]
+
+[project.scripts]
+pyradar = "pyradarsystems.cli:main"
+pyradarsystems = "pyradarsystems.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
