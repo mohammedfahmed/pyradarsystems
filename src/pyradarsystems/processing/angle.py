@@ -69,7 +69,10 @@ class AngleEstimator:
             power = np.mean(np.abs(response) ** 2, axis=1) / x.shape[0] ** 2
         else:
             covariance = x @ x.conj().T / x.shape[1]
-            loading = self.diagonal_loading * max(float(np.trace(covariance).real / x.shape[0]), np.finfo(float).eps)
+            loading = self.diagonal_loading * max(
+                float(np.trace(covariance).real / x.shape[0]),
+                np.finfo(float).eps,
+            )
             covariance = covariance + loading * np.eye(x.shape[0])
             if method == "capon":
                 inverse = np.linalg.pinv(covariance)

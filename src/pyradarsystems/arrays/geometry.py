@@ -24,8 +24,12 @@ class RadarArray:
     rx_positions_m: np.ndarray
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "tx_positions_m", _positions(self.tx_positions_m, "tx_positions_m"))
-        object.__setattr__(self, "rx_positions_m", _positions(self.rx_positions_m, "rx_positions_m"))
+        object.__setattr__(
+            self, "tx_positions_m", _positions(self.tx_positions_m, "tx_positions_m")
+        )
+        object.__setattr__(
+            self, "rx_positions_m", _positions(self.rx_positions_m, "rx_positions_m")
+        )
 
     @property
     def num_tx(self) -> int:

@@ -5,8 +5,8 @@ type: software
 authors:
   - family-names: "Ahmed"
     given-names: "Mohammed F. A."
-version: 0.1.0
-date-released: 2026-07-30
+version: 0.2.0
+date-released: 2026-07-31
 license: BSD-3-Clause
 keywords:
   - radar simulation
@@ -19,3 +19,6 @@ keywords:
   - phased array
   - automotive radar
   - signal processing
+
+repository-code: "https://github.com/mohammedfahmed/pyradarsystems"
+url: "https://github.com/mohammedfahmed/pyradarsystems"

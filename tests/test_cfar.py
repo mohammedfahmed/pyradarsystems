@@ -18,3 +18,18 @@ def test_2d_cfar_shapes() -> None:
     assert detections.shape == power.shape
     assert threshold.shape == power.shape
     assert detections[30, 16]
+
+
+def test_cfar_empirical_false_alarm_rate_is_close_to_request() -> None:
+    rng = np.random.default_rng(20260731)
+    power = rng.exponential(scale=1.0, size=200_000)
+    requested_pfa = 1e-2
+    detections, threshold = ca_cfar_1d(
+        power,
+        training_cells=16,
+        guard_cells=4,
+        pfa=requested_pfa,
+    )
+    valid = np.isfinite(threshold)
+    empirical_pfa = float(np.mean(detections[valid]))
+    assert np.isclose(empirical_pfa, requested_pfa, rtol=0.15)

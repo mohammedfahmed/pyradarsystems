@@ -2,31 +2,29 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/) [![License: BSD--3--Clause](https://img.shields.io/badge/license-BSD--3--Clause-green.svg)](LICENSE)
 
-**PyRadarSystems** (`pyradarsystems`) is an open, validation-first Python framework for radar simulation, phased arrays, signal processing, detection, tracking, hardware integration, and reproducible research.
+**PyRadarSystems** (`pyradarsystems`) is an open, validation-first Python framework for radar simulation, phased arrays, signal processing, detection, estimation, reproducible experiments, tracking, and hardware integration.
 
-**Version 0.1.0 is the first vertical slice of that roadmap:** a self-contained **77-GHz FMCW TDM-MIMO core** with transparent mathematical models for academic papers, Monte Carlo studies, algorithm development, and later hardware validation.
+Repository: https://github.com/mohammedfahmed/pyradarsystems
 
-## Reference outputs
+## Current release
 
-| Range-Doppler processing | Angle estimation |
-|---|---|
-| ![Range-Doppler map](docs/images/basic_range_doppler.png) | ![Angle spectrum](docs/images/basic_angle_spectrum.png) |
+**Version 0.2.0** retains the self-contained 77-GHz FMCW TDM-MIMO core and adds the first reproducible-research layer:
 
-The reference point-target example recovers a 25 m, -3 m/s, 12° target as approximately 25.03 m, -3.04 m/s, and 12.0°. The included automated test suite contains seven analytical and end-to-end checks.
+- Deterministic serial or process-parallel Monte Carlo studies
+- Stable component-specific random streams and CSV seed manifests
+- Means, standard deviations, paired differences, and confidence intervals
+- Generated CSV, LaTeX, YAML, and JSON result bundles
+- Uniform, Hann, Hamming, Blackman, Taylor, and Chebyshev tapers
+- Explicit constant-total-power, constant-peak-power, and constant-broadside-gain normalization
+- Isotropic, cosine-power, and tabulated measured/simulated element patterns
+- Array-pattern HPBW, first-null beamwidth, PSLR, and ISLR
+- Transparent distributed angular clutter built from point scatterers
+- Basic range and Doppler Cramér-Rao lower bounds
+- YAML configuration support for element patterns and taper policies
 
-## What is included
+![Aperture-taper patterns](docs/images/research_taper_patterns.png)
 
-- Configurable FMCW waveform and derived radar limits
-- Arbitrary 3D TX/RX element coordinates, ULA/URA helpers, and virtual arrays
-- TDM-MIMO point-target echo generation with range, radial velocity, azimuth/elevation, RCS, thermal noise, calibration errors, and optional phase noise
-- Labelled `xarray.DataArray` radar cubes with units and provenance metadata
-- Range FFT and Doppler FFT with physically labelled axes
-- TDM Doppler compensation
-- Bartlett, Capon/MVDR, and MUSIC angle estimation
-- 1D and 2D CA-CFAR
-- Reproducibility manifest and configuration hashing
-- Analytical and end-to-end tests
-- Three runnable research examples
+The release also includes the original waveform, array, point-target, thermal-noise, TDM compensation, range-Doppler, Bartlett, Capon/MVDR, MUSIC, and CA-CFAR functionality.
 
 ## Installation
 
@@ -37,65 +35,102 @@ source .venv/bin/activate
 # Windows PowerShell
 # .venv\Scripts\Activate.ps1
 
-pip install -e .
-# For an offline environment with dependencies already installed:
-# pip install -e . --no-build-isolation
-```
-
-For development:
-
-```bash
+python -m pip install --upgrade pip
 pip install -e ".[dev]"
 pytest
 ```
 
-GitHub Actions runs the test suite on Python 3.10, 3.11, and 3.12 for every push and pull request.
-
-## Run the basic example
+## Basic radar example
 
 ```bash
 python examples/basic_point_target.py
 ```
 
-Outputs are written to `results/basic_point_target/` and include the resolved configuration, metadata, numerical estimates, and figures.
+The reference example estimates a 25 m, -3 m/s, 12° point target and writes labelled radar products and provenance metadata under `results/basic_point_target/`.
 
-Run through the command line:
+## Reproducible taper study
 
 ```bash
-pyradar demo --output results/cli_demo
+python examples/reproducible_taper_study.py \
+  --trials 200 \
+  --workers 1 \
+  --output results/reproducible_taper_study
 ```
 
-## Minimal example
+Use more workers when the evaluator is importable and picklable:
+
+```bash
+python examples/reproducible_taper_study.py --trials 200 --workers 4
+```
+
+The study writes:
+
+```text
+raw_metrics.csv
+summary.csv
+summary.tex
+seed_manifest.csv
+resolved_configuration.yaml
+manifest.json
+ideal_taper_patterns.pdf
+ideal_taper_patterns.png
+```
+
+## Minimal taper API
 
 ```python
 import numpy as np
 from pyradarsystems import (
+    CosineElementPattern,
     FMCWWaveform,
     RadarArray,
-    RadarSystem,
-    PointTarget,
-    TDMFMCWSimulator,
-    RangeDopplerProcessor,
+    array_pattern,
+    make_taper,
+    normalize_taper,
+    pattern_metrics,
 )
 
-waveform = FMCWWaveform(
-    carrier_frequency_hz=77e9,
-    bandwidth_hz=1e9,
-    chirp_duration_s=50e-6,
-    idle_time_s=10e-6,
-    sampling_rate_hz=10e6,
-    samples_per_chirp=500,
-    chirps_per_tx=64,
+waveform = FMCWWaveform()
+array = RadarArray.ula(1, 16, waveform.wavelength_m, rx_spacing_lambda=0.5)
+weights, report = normalize_taper(
+    make_taper(16, "taylor", sidelobe_level_db=30),
+    "constant_total_power",
 )
-
-wavelength = waveform.wavelength_m
-array = RadarArray.tdm_3tx_4rx(wavelength)
-system = RadarSystem(waveform=waveform, array=array, tx_power_w=0.01)
-
-targets = [PointTarget(range_m=25, radial_velocity_mps=-3, azimuth_deg=12, rcs_sqm=10)]
-raw = TDMFMCWSimulator(system, seed=7).simulate(targets)
-rd = RangeDopplerProcessor().process(raw, waveform)
+grid = np.linspace(-90, 90, 7201)
+power = array_pattern(
+    weights,
+    array.rx_positions_m,
+    waveform.wavelength_m,
+    grid,
+    element_pattern=CosineElementPattern(exponent=2),
+)
+metrics = pattern_metrics(power, grid)
+print(report)
+print(metrics)
 ```
+
+## Minimal Monte Carlo API
+
+```python
+from pyradarsystems import MonteCarloStudy
+
+
+def evaluate(context):
+    noise = context.rng("noise").normal()
+    return {"estimate": float(noise)}
+
+
+study = MonteCarloStudy(
+    name="example",
+    num_trials=1000,
+    master_seed=20260731,
+    streams=("noise",),
+)
+result = study.run(evaluate)
+result.write_bundle("results/example")
+```
+
+Seed derivation is independent of worker count and execution order. Use the same stream within a trial to construct paired comparisons without silently changing random realizations.
 
 ## Data conventions
 
@@ -111,56 +146,22 @@ Range-Doppler cube dimensions:
 (frame, tx, rx, doppler, range)
 ```
 
-Coordinates are SI units unless explicitly suffixed. Angles are degrees at the public API. Element coordinates are Cartesian `[x, y, z]` in metres, with azimuth measured from broadside toward positive `x` for arrays lying on the `x` axis.
+Coordinates use SI units unless explicitly suffixed. Angles are degrees at the public API. Element coordinates are Cartesian `[x, y, z]` in metres. Azimuth is measured from +y broadside toward +x for arrays lying on the x axis.
 
-## Planned framework scope
+Element-pattern models return normalized **one-way power gain**. The simulator applies the corresponding square-root voltage factor independently on transmit and receive.
 
-The repository name reflects the complete planned system rather than only the first automotive-radar release. Future modules are organized around:
+## Validation status
 
-```text
-pyradarsystems/
-├── waveforms
-├── rf
-├── arrays
-├── channels
-├── targets
-├── scenes
-├── simulation
-├── processing
-├── detection
-├── estimation
-├── tracking
-├── hardware
-├── visualization
-├── experiments
-└── validation
-```
+The v0.2 suite contains **18 automated tests**, including analytical range/Doppler behavior, virtual-array recovery, taper normalization, reference ULA sidelobes, element-pattern attenuation, reproducible seeds, result export, distributed-clutter RCS conservation, CRLB trends, and an empirical CA-CFAR false-alarm audit.
 
-The current 77-GHz TDM-MIMO implementation is the initial research-ready core, not a limitation on the long-term project scope.
+See [docs/VALIDATION.md](docs/VALIDATION.md) for completed and planned validation.
 
-## Model scope and limitations
+## Scope and limitations
 
-Version 0.1 uses a far-field point-target baseband/dechirped signal model. It does not yet implement mesh scattering, full electromagnetic propagation, multipath ray tracing, mutual coupling from first principles, atmospheric attenuation, tracking, or hardware capture readers. These are planned modules, not silently approximated features.
+The current simulator uses a far-field point-scatterer dechirped baseband model. The distributed-clutter model is a controlled collection of point scatterers; it is not terrain electromagnetic scattering. Version 0.2 does not yet include mesh scattering, multipath ray tracing, atmospheric models, mutual coupling from first principles, hardware ADC readers, tracking, or GPU acceleration.
 
-## Reproducibility
+See [docs/ROADMAP.md](docs/ROADMAP.md) for the planned expansion.
 
-Every simulator output stores:
+## License and citation
 
-- Package version
-- Random seed
-- Waveform and array configuration
-- Target definitions
-- Coordinate conventions
-- Simulation timestamp
-- SHA-256 configuration hash
-
-Use `pyradarsystems.reproducibility.write_manifest(...)` to create a publication-ready manifest.
-
-## License
-
-BSD 3-Clause. See `LICENSE`.
-
-
-## Repository hygiene
-
-Generated files under `results/`, package builds under `dist/`, virtual environments, and caches are excluded by `.gitignore`. Add the final repository URL to `CITATION.cff` after the GitHub repository is created.
+BSD 3-Clause. See [LICENSE](LICENSE) and [CITATION.cff](CITATION.cff).

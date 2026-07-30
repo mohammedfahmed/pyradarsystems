@@ -8,7 +8,7 @@ from typing import Sequence
 import numpy as np
 import xarray as xr
 
-from pyradarsystems.arrays import direction_unit_vector
+from pyradarsystems.arrays import direction_unit_vector, element_voltage_factor
 from pyradarsystems.constants import BOLTZMANN_J_PER_K
 from pyradarsystems.reproducibility import configuration_hash, package_version
 from pyradarsystems.scene import PointTarget
@@ -144,7 +144,24 @@ class TDMFMCWSimulator:
                         )
                         beat_frequency = w.beat_frequency_hz(target.range_m)
                         doppler_frequency = w.doppler_frequency_hz(target.radial_velocity_mps)
-                        amplitude = np.sqrt(self.received_power_w(target)) * channel_scale
+                        tx_element_factor = element_voltage_factor(
+                            self.system.tx_element_pattern,
+                            target.azimuth_deg,
+                            target.elevation_deg,
+                            propagation_passes=1,
+                        )
+                        rx_element_factor = element_voltage_factor(
+                            self.system.rx_element_pattern,
+                            target.azimuth_deg,
+                            target.elevation_deg,
+                            propagation_passes=1,
+                        )
+                        amplitude = (
+                            np.sqrt(self.received_power_w(target))
+                            * channel_scale
+                            * complex(np.asarray(tx_element_factor).item())
+                            * complex(np.asarray(rx_element_factor).item())
+                        )
                         phase_fast = 2.0 * np.pi * beat_frequency * fast_time
                         phase_slow = 2.0 * np.pi * doppler_frequency * chirp_times
                         channel += amplitude * np.exp(
@@ -201,7 +218,13 @@ class TDMFMCWSimulator:
             "pyradarsystems_version": package_version(),
             "noise_power_w": float(noise_power if add_noise else 0.0),
         }
-        return xr.DataArray(data, dims=("frame", "tx", "rx", "chirp", "sample"), coords=coords, attrs=attrs, name="adc")
+        return xr.DataArray(
+            data,
+            dims=("frame", "tx", "rx", "chirp", "sample"),
+            coords=coords,
+            attrs=attrs,
+            name="adc",
+        )
 
     def _quantize(self, data: np.ndarray) -> np.ndarray:
         bits = int(self.impairments.adc_bits or 0)

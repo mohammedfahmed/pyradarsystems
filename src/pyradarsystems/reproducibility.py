@@ -29,7 +29,7 @@ def package_version() -> str:
     try:
         return version("pyradarsystems")
     except PackageNotFoundError:
-        return "0.1.0+source"
+        return "0.2.0+source"
 
 
 def build_manifest(configuration: dict, seed: int | None) -> dict:

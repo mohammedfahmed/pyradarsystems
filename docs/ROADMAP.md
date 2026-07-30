@@ -1,12 +1,14 @@
 # PyRadarSystems Roadmap
 
-## v0.2 - Research experiment layer
+## v0.2 - Research experiment layer - completed
 
-- Batched Monte Carlo runner with parallel workers
-- Confidence intervals and seed manifests
-- Fair-normalization policies for taper/beamformer comparisons
-- Automated figure and table generation
+- Batched Monte Carlo runner with deterministic parallel workers
+- Confidence intervals, paired differences, and seed manifests
+- Fair normalization policies for taper and beamformer comparisons
+- Generated CSV, LaTeX, YAML, and JSON result artifacts
 - CRLB utilities
+- Element-pattern and aperture-taper analysis
+- Initial transparent distributed-clutter model
 
 ## v0.3 - Hardware bridge
 
@@ -24,9 +26,10 @@
 - Mutual-coupling matrix interface
 - Frequency-dependent element patterns
 
-## v0.5 - Scenes
+## v0.5 - Scene expansion
 
-- Ground clutter and Swerling models
+- Ground-clutter models tied to geometry and grazing angle
+- Swerling target fluctuations
 - Multipath path-list interface
 - Extended point-cloud targets
 - Micro-Doppler primitives
@@ -41,7 +44,7 @@
 
 ## Post-v1.0 - General radar systems expansion
 
-- Pulsed, phase-coded, CW, OFDM, and configurable arbitrary waveforms
+- Pulsed, phase-coded, CW, OFDM, and arbitrary waveforms
 - Wideband, subarray, conformal-array, polarization, and near-field processing
 - Multi-target tracking, data association, and sensor fusion
 - Scene geometry, ray-tracing adapters, extended targets, and mesh scattering

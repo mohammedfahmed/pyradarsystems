@@ -9,7 +9,12 @@ from pathlib import Path
 import numpy as np
 
 from pyradarsystems.arrays import RadarArray
-from pyradarsystems.processing import AngleEstimator, RangeDopplerProcessor, extract_virtual_snapshot, nearest_bin
+from pyradarsystems.processing import (
+    AngleEstimator,
+    RangeDopplerProcessor,
+    extract_virtual_snapshot,
+    nearest_bin,
+)
 from pyradarsystems.reproducibility import write_manifest
 from pyradarsystems.scene import PointTarget
 from pyradarsystems.simulation import TDMFMCWSimulator
@@ -28,9 +33,13 @@ def run_demo(output: Path) -> None:
     raw = simulator.simulate([target])
     rd = RangeDopplerProcessor(range_fft_size=1024, doppler_fft_size=128).process(raw, waveform)
     di, ri = nearest_bin(rd, range_m=target.range_m, velocity_mps=target.radial_velocity_mps)
-    snapshot = extract_virtual_snapshot(rd, array, waveform, frame_index=0, doppler_index=di, range_index=ri)
+    snapshot = extract_virtual_snapshot(
+        rd, array, waveform, frame_index=0, doppler_index=di, range_index=ri
+    )
     grid = np.linspace(-60, 60, 1201)
-    estimate, spectrum = AngleEstimator("bartlett").estimate(snapshot, array.virtual_positions_m, waveform.wavelength_m, grid)
+    estimate, spectrum = AngleEstimator("bartlett").estimate(
+        snapshot, array.virtual_positions_m, waveform.wavelength_m, grid
+    )
     plot_range_doppler(rd, output / "range_doppler.png")
     plot_angle_spectrum(grid, spectrum, output / "angle_spectrum.png")
     summary = {
@@ -42,7 +51,11 @@ def run_demo(output: Path) -> None:
         "estimated_azimuth_deg": estimate,
     }
     (output / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    write_manifest(output / "manifest.yaml", {"system": system.as_dict(), "targets": [target.as_dict()]}, 7)
+    write_manifest(
+        output / "manifest.yaml",
+        {"system": system.as_dict(), "targets": [target.as_dict()]},
+        7,
+    )
     print(json.dumps(summary, indent=2))
 
 
